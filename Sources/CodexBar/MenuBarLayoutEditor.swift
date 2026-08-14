@@ -232,20 +232,7 @@ struct MenuBarLayoutEditor: View {
     }
 
     private var paletteGroups: [MenuBarLayoutPaletteGroup] {
-        var usageTokens: [MenuBarLayoutToken] = [
-            .percent(window: .session),
-            .percent(window: .weekly),
-            .percent(window: .scopedWeekly),
-            .percent(window: .automatic),
-            .usageBar,
-            .pace(window: .session),
-            .pace(window: .weekly),
-            .pace(window: .automatic),
-        ]
-        if MenuBarLayoutAccountWindowResolver.supports(provider: self.scopedProvider) {
-            usageTokens.insert(.allAccountsWeeklyPercent, at: 2)
-        }
-        return [
+        [
             MenuBarLayoutPaletteGroup(
                 id: "identity",
                 title: L("menu_bar_layout_group_identity"),
@@ -254,7 +241,16 @@ struct MenuBarLayoutEditor: View {
             MenuBarLayoutPaletteGroup(
                 id: "usage",
                 title: L("menu_bar_layout_group_usage"),
-                tokens: usageTokens,
+                tokens: [
+                    .percent(window: .session),
+                    .percent(window: .weekly),
+                    .percent(window: .scopedWeekly),
+                    .percent(window: .automatic),
+                    .usageBar,
+                    .pace(window: .session),
+                    .pace(window: .weekly),
+                    .pace(window: .automatic),
+                ],
                 includesLineBreak: false),
             MenuBarLayoutPaletteGroup(
                 id: "time",
@@ -901,7 +897,6 @@ extension MenuBarLayoutToken {
         case .icon: L("menu_bar_layout_token_icon")
         case .providerName: L("menu_bar_layout_token_provider")
         case .accountLabel: L("menu_bar_layout_token_account")
-        case .allAccountsWeeklyPercent: "\(L("Accounts")) \(L("Weekly")) %"
         case .percent(window: .session): L("menu_bar_layout_token_session")
         case .percent(window: .weekly): L("menu_bar_layout_token_weekly")
         case .percent(window: .scopedWeekly): L("menu_bar_layout_token_scoped_weekly")
@@ -934,7 +929,6 @@ extension MenuBarLayoutToken {
         case .icon: "app.dashed"
         case .providerName: "textformat"
         case .accountLabel: "person.crop.circle"
-        case .allAccountsWeeklyPercent: "person.2.fill"
         case .percent: "percent"
         case .pace: "speedometer"
         case .usageBar: "chart.bar.fill"

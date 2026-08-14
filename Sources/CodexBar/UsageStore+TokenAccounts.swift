@@ -207,8 +207,8 @@ extension UsageStore {
 
     func shouldFetchAllCodexVisibleAccounts() -> Bool {
         let projection = self.freshCodexVisibleAccountProjectionForAccountRefresh()
-        return self.settings.menuBarNeedsAllCodexAccountSnapshots &&
-            projection.visibleAccounts.count > 1
+        let visibleAccountCount = projection.visibleAccounts.count
+        return visibleAccountCount > 1
     }
 
     func refreshCodexVisibleAccountsForMenu(generation: UInt64? = nil) async {
