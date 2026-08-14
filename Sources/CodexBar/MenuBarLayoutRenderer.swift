@@ -323,31 +323,8 @@ final class MenuBarLayoutRenderer {
             let value = NSMutableAttributedString(attachment: attachment)
             value.addAttributes(style.attributes, range: NSRange(location: 0, length: value.length))
             return (value, Self.iconAccessibilityText(data: data))
-        case .providerName:
-            return self.optionalTextToken(
-                data.providerName,
-                unavailableLabel: L("Provider name unavailable"),
-                attributes: style.attributes)
-        case .accountLabel:
-            return self.optionalTextToken(
-                data.accountLabel,
-                unavailableLabel: L("Account unavailable"),
-                attributes: style.attributes)
-        case .allAccountsWeeklyPercent:
-            guard !data.accountWeeklyWindows.isEmpty else {
-                return self.textToken(
-                    self.missingValue,
-                    accessibilityText: L("%@ unavailable", L("Weekly")),
-                    attributes: style.attributes)
-            }
-            let values = data.accountWeeklyWindows.map { window in
-                window.map { options.showUsed ? $0.usedPercent : $0.remainingPercent }
-                    .map(UsageFormatter.percentString) ?? Self.missingValue
-            }
-            return self.textToken(
-                values.joined(separator: " / "),
-                accessibilityText: L("%@ %@", L("Weekly"), values.joined(separator: ", ")),
-                attributes: style.attributes)
+        case .providerName, .accountLabel, .allAccountsWeeklyPercent:
+            return self.identityTextToken(item, data: data, style: style, options: options)
         case let .percent(window):
             let rateWindow = Self.window(window, data: data)
             let percent = rateWindow.map { options.showUsed ? $0.usedPercent : $0.remainingPercent }
@@ -436,6 +413,44 @@ final class MenuBarLayoutRenderer {
 
     private static func iconAccessibilityText(data: MenuBarLayoutRenderData) -> String {
         L("%@ icon", data.providerName ?? L("Provider"))
+    }
+
+    private static func identityTextToken(
+        _ item: MenuBarLayoutToken,
+        data: MenuBarLayoutRenderData,
+        style: TokenStyle,
+        options: MenuBarLayoutRenderOptions)
+        -> (value: NSAttributedString, accessibilityText: String?)
+    {
+        switch item {
+        case .providerName:
+            self.optionalTextToken(
+                data.providerName,
+                unavailableLabel: L("Provider name unavailable"),
+                attributes: style.attributes)
+        case .accountLabel:
+            self.optionalTextToken(
+                data.accountLabel,
+                unavailableLabel: L("Account unavailable"),
+                attributes: style.attributes)
+        case .allAccountsWeeklyPercent:
+            if data.accountWeeklyWindows.isEmpty {
+                return self.textToken(
+                    self.missingValue,
+                    accessibilityText: L("%@ unavailable", L("Weekly")),
+                    attributes: style.attributes)
+            }
+            let values = data.accountWeeklyWindows.map { window in
+                window.map { options.showUsed ? $0.usedPercent : $0.remainingPercent }
+                    .map(UsageFormatter.percentString) ?? Self.missingValue
+            }
+            return self.textToken(
+                values.joined(separator: " / "),
+                accessibilityText: L("%@ %@", L("Weekly"), values.joined(separator: ", ")),
+                attributes: style.attributes)
+        default:
+            preconditionFailure("Unexpected identity text token: \(item)")
+        }
     }
 
     private static func offsetLeadingIcon(_ image: NSImage, adjustment: Int) -> NSImage {
