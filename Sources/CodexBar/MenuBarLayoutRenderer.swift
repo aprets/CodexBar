@@ -424,12 +424,12 @@ final class MenuBarLayoutRenderer {
     {
         switch item {
         case .providerName:
-            self.optionalTextToken(
+            return self.optionalTextToken(
                 data.providerName,
                 unavailableLabel: L("Provider name unavailable"),
                 attributes: style.attributes)
         case .accountLabel:
-            self.optionalTextToken(
+            return self.optionalTextToken(
                 data.accountLabel,
                 unavailableLabel: L("Account unavailable"),
                 attributes: style.attributes)
