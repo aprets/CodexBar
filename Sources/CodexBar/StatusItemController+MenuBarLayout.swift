@@ -81,6 +81,9 @@ extension StatusItemController {
             iconKey: "\(provider.rawValue):\(warningFlash ? "warning" : "normal")",
             providerName: providerName,
             accountLabel: accountLabel,
+            accountWeeklyWindows: MenuBarLayoutAccountWindowResolver.weekly(
+                provider: provider,
+                codexSnapshots: self.store.codexAccountSnapshots),
             session: MenuBarLayoutRenderWindow(windows.session),
             weekly: MenuBarLayoutRenderWindow(windows.weekly),
             scopedWeekly: MenuBarLayoutRenderWindow(scopedNamed?.window),

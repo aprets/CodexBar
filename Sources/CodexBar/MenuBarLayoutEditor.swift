@@ -232,7 +232,20 @@ struct MenuBarLayoutEditor: View {
     }
 
     private var paletteGroups: [MenuBarLayoutPaletteGroup] {
-        [
+        var usageTokens: [MenuBarLayoutToken] = [
+            .percent(window: .session),
+            .percent(window: .weekly),
+            .percent(window: .scopedWeekly),
+            .percent(window: .automatic),
+            .usageBar,
+            .pace(window: .session),
+            .pace(window: .weekly),
+            .pace(window: .automatic),
+        ]
+        if MenuBarLayoutAccountWindowResolver.supports(provider: self.scopedProvider) {
+            usageTokens.insert(.allAccountsWeeklyPercent, at: 2)
+        }
+        return [
             MenuBarLayoutPaletteGroup(
                 id: "identity",
                 title: L("menu_bar_layout_group_identity"),
@@ -241,16 +254,7 @@ struct MenuBarLayoutEditor: View {
             MenuBarLayoutPaletteGroup(
                 id: "usage",
                 title: L("menu_bar_layout_group_usage"),
-                tokens: [
-                    .percent(window: .session),
-                    .percent(window: .weekly),
-                    .percent(window: .scopedWeekly),
-                    .percent(window: .automatic),
-                    .usageBar,
-                    .pace(window: .session),
-                    .pace(window: .weekly),
-                    .pace(window: .automatic),
-                ],
+                tokens: usageTokens,
                 includesLineBreak: false),
             MenuBarLayoutPaletteGroup(
                 id: "time",
@@ -718,6 +722,9 @@ struct MenuBarLayoutPreview: View {
             iconKey: provider.rawValue,
             providerName: L(self.store.metadata(for: provider).displayName),
             accountLabel: self.settings.hidePersonalInfo ? nil : snapshot.accountEmail(for: provider),
+            accountWeeklyWindows: MenuBarLayoutAccountWindowResolver.weekly(
+                provider: provider,
+                codexSnapshots: self.store.codexAccountSnapshots),
             session: MenuBarLayoutRenderWindow(session),
             weekly: MenuBarLayoutRenderWindow(weekly),
             scopedWeekly: MenuBarLayoutRenderWindow(scopedNamed?.window),
@@ -773,6 +780,14 @@ struct MenuBarLayoutPreview: View {
             iconKey: "\(provider.rawValue)-representative",
             providerName: L(self.store.metadata(for: provider).displayName),
             accountLabel: self.settings.hidePersonalInfo ? nil : L("menu_bar_layout_sample_account"),
+            accountWeeklyWindows: MenuBarLayoutAccountWindowResolver.weeklyPreview(
+                provider: provider,
+                primary: weekly,
+                secondary: RateWindow(
+                    usedPercent: 24,
+                    windowMinutes: 10080,
+                    resetsAt: now.addingTimeInterval(5 * 24 * 60 * 60),
+                    resetDescription: nil)),
             session: MenuBarLayoutRenderWindow(session),
             weekly: MenuBarLayoutRenderWindow(weekly),
             scopedWeekly: MenuBarLayoutRenderWindow(scopedWeekly),
@@ -886,6 +901,7 @@ extension MenuBarLayoutToken {
         case .icon: L("menu_bar_layout_token_icon")
         case .providerName: L("menu_bar_layout_token_provider")
         case .accountLabel: L("menu_bar_layout_token_account")
+        case .allAccountsWeeklyPercent: "\(L("Accounts")) \(L("Weekly")) %"
         case .percent(window: .session): L("menu_bar_layout_token_session")
         case .percent(window: .weekly): L("menu_bar_layout_token_weekly")
         case .percent(window: .scopedWeekly): L("menu_bar_layout_token_scoped_weekly")
@@ -918,6 +934,7 @@ extension MenuBarLayoutToken {
         case .icon: "app.dashed"
         case .providerName: "textformat"
         case .accountLabel: "person.crop.circle"
+        case .allAccountsWeeklyPercent: "person.2.fill"
         case .percent: "percent"
         case .pace: "speedometer"
         case .usageBar: "chart.bar.fill"

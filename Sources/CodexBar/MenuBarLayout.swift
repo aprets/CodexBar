@@ -13,6 +13,7 @@ enum MenuBarLayoutToken: Codable, Hashable, Sendable {
     case providerName
     case accountLabel
     case percent(window: PercentWindow)
+    case allAccountsWeeklyPercent
     /// Signed pace delta for a window, e.g. `+11%` when usage runs ahead of the sustainable rate.
     /// `runsOut` answers "when does this end"; this token answers "how far off the even rate am I".
     case pace(window: PercentWindow)
@@ -281,5 +282,51 @@ extension MenuBarLayout {
         case .session: .session
         case .weekly: .weekly
         }
+    }
+}
+
+extension MenuBarLayout {
+    var showsAllAccountsWeeklyPercent: Bool {
+        self.lines.joined().contains(.allAccountsWeeklyPercent)
+    }
+}
+
+enum MenuBarLayoutAccountWindowResolver {
+    static func supports(provider: UsageProvider?) -> Bool {
+        // Provider-specific by design: Codex is the only provider with reconciled visible-account snapshots.
+        provider == .codex
+    }
+
+    static func weekly(
+        provider: UsageProvider,
+        codexSnapshots: [CodexAccountUsageSnapshot])
+        -> [MenuBarLayoutRenderWindow?]
+    {
+        guard self.supports(provider: provider) else { return [] }
+        let activeFirst = codexSnapshots.filter(\.account.isActive) + codexSnapshots.filter { !$0.account.isActive }
+        return activeFirst.map { accountSnapshot in
+            MenuBarLayoutRenderWindow(CodexConsumerProjection.sourceRateWindow(
+                for: .weekly,
+                snapshot: accountSnapshot.snapshot))
+        }
+    }
+
+    static func weeklyPreview(
+        provider: UsageProvider,
+        primary: RateWindow,
+        secondary: RateWindow)
+        -> [MenuBarLayoutRenderWindow?]
+    {
+        self.supports(provider: provider)
+            ? [MenuBarLayoutRenderWindow(primary), MenuBarLayoutRenderWindow(secondary)]
+            : []
+    }
+}
+
+extension SettingsStore {
+    var menuBarNeedsAllCodexAccountSnapshots: Bool {
+        // Provider-specific by design: this setting controls Codex visible-account refresh fan-out.
+        self.multiAccountMenuLayout == .stacked ||
+            self.menuBarLayout(for: .codex).showsAllAccountsWeeklyPercent
     }
 }

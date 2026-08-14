@@ -26,7 +26,7 @@ read_when:
 | Group | Tokens | Behavior |
 | --- | --- | --- |
 | Identity | Icon, Provider name, Account | Provider-scoped branding and identity |
-| Usage | Session %, Weekly %, Scoped weekly %, Auto %, Usage bar | Window percentage or a compact three-glyph usage bar |
+| Usage | Session %, Weekly %, Accounts Weekly %, Scoped weekly %, Auto %, Usage bar | Window percentage or a compact three-glyph usage bar. Accounts Weekly % shows every visible Codex account. |
 | Usage | Session pace, Weekly pace, Auto pace | Signed pace delta for that window |
 | Time | Resets in, Reset at, Runs out | Relative reset, absolute reset, or pace estimate |
 | Money | Balance, Cost today, Cost 30d | OpenRouter credit balance, or local cost estimate for the selected period |

@@ -17,6 +17,7 @@ struct MenuBarLayoutRendererTests {
         let expected: [(MenuBarLayoutToken, String)] = [
             (.providerName, "Codex"),
             (.accountLabel, "user@example.com"),
+            (.allAccountsWeeklyPercent, "60% / 25%"),
             (.percent(window: .session), "5h 25%"),
             (.percent(window: .weekly), "W 60%"),
             (.percent(window: .scopedWeekly), "F 80%"),
@@ -171,6 +172,7 @@ struct MenuBarLayoutRendererTests {
             iconKey: "missing",
             providerName: nil,
             accountLabel: nil,
+            accountWeeklyWindows: [],
             session: nil,
             weekly: nil,
             scopedWeekly: nil,
@@ -187,6 +189,7 @@ struct MenuBarLayoutRendererTests {
             .icon,
             .providerName,
             .accountLabel,
+            .allAccountsWeeklyPercent,
             .percent(window: .session),
             .percent(window: .weekly),
             .percent(window: .scopedWeekly),
@@ -205,8 +208,27 @@ struct MenuBarLayoutRendererTests {
 
         let output = renderer.render(layout: layout, data: missingData, icon: nil, options: self.options())
 
-        #expect(output.attributedTitle.string.count(where: { $0 == "–" }) == 17)
+        #expect(output.attributedTitle.string.count(where: { $0 == "–" }) == 18)
         #expect(output.accessibilityLabel.contains("unavailable"))
+    }
+
+    @Test
+    func `all accounts weekly token respects remaining display`() {
+        let renderer = MenuBarLayoutRenderer()
+        let output = renderer.render(
+            layout: MenuBarLayout(lines: [[.allAccountsWeeklyPercent]]),
+            data: self.data(),
+            icon: nil,
+            options: self.options(showUsed: false))
+
+        #expect(output.attributedTitle.string == "40% / 75%")
+        #expect(output.accessibilityLabel == L("%@ %@", L("Weekly"), "40%, 75%"))
+    }
+
+    @Test
+    func `layout detects all accounts weekly token`() {
+        #expect(MenuBarLayout(lines: [[.icon, .allAccountsWeeklyPercent]]).showsAllAccountsWeeklyPercent)
+        #expect(!MenuBarLayout(lines: [[.icon, .percent(window: .weekly)]]).showsAllAccountsWeeklyPercent)
     }
 
     @Test
@@ -235,6 +257,7 @@ struct MenuBarLayoutRendererTests {
             iconKey: "codex",
             providerName: "Codex",
             accountLabel: nil,
+            accountWeeklyWindows: [],
             session: MenuBarLayoutRenderWindow(RateWindow(
                 usedPercent: 25,
                 windowMinutes: 300,
@@ -452,6 +475,7 @@ struct MenuBarLayoutRendererTests {
             iconKey: "codex",
             providerName: "Codex",
             accountLabel: nil,
+            accountWeeklyWindows: [],
             session: nil,
             weekly: nil,
             scopedWeekly: nil,
@@ -549,6 +573,18 @@ struct MenuBarLayoutRendererTests {
             iconKey: "codex",
             providerName: "Codex",
             accountLabel: "user@example.com",
+            accountWeeklyWindows: [
+                MenuBarLayoutRenderWindow(RateWindow(
+                    usedPercent: 60,
+                    windowMinutes: 10080,
+                    resetsAt: self.now.addingTimeInterval(3 * 24 * 60 * 60),
+                    resetDescription: nil)),
+                MenuBarLayoutRenderWindow(RateWindow(
+                    usedPercent: 25,
+                    windowMinutes: 10080,
+                    resetsAt: self.now.addingTimeInterval(4 * 24 * 60 * 60),
+                    resetDescription: nil)),
+            ],
             session: MenuBarLayoutRenderWindow(RateWindow(
                 usedPercent: 25,
                 windowMinutes: 300,
@@ -582,12 +618,13 @@ struct MenuBarLayoutRendererTests {
     private func options(
         now: Date? = nil,
         verticalAdjustment: Int = 0,
-        isStale: Bool = false) -> MenuBarLayoutRenderOptions
+        isStale: Bool = false,
+        showUsed: Bool = true) -> MenuBarLayoutRenderOptions
     {
         MenuBarLayoutRenderOptions(
             size: .regular,
             highContrast: false,
-            showUsed: true,
+            showUsed: showUsed,
             appearanceName: "aqua",
             isDebugApp: false,
             isStale: isStale,
