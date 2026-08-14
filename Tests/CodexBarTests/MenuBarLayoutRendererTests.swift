@@ -17,11 +17,10 @@ struct MenuBarLayoutRendererTests {
         let expected: [(MenuBarLayoutToken, String)] = [
             (.providerName, "Codex"),
             (.accountLabel, "user@example.com"),
-            (.allAccountsWeeklyPercent, "60% / 25%"),
             (.percent(window: .session), "5h 25%"),
-            (.percent(window: .weekly), "W 60%"),
+            (.percent(window: .weekly), "60% / 25%"),
             (.percent(window: .scopedWeekly), "F 80%"),
-            (.percent(window: .automatic), "50%"),
+            (.percent(window: .automatic), "60% / 25%"),
             (.pace(window: .session), "-8%"),
             (.pace(window: .weekly), "+11%"),
             (.pace(window: .automatic), "0%"),
@@ -189,7 +188,6 @@ struct MenuBarLayoutRendererTests {
             .icon,
             .providerName,
             .accountLabel,
-            .allAccountsWeeklyPercent,
             .percent(window: .session),
             .percent(window: .weekly),
             .percent(window: .scopedWeekly),
@@ -208,27 +206,21 @@ struct MenuBarLayoutRendererTests {
 
         let output = renderer.render(layout: layout, data: missingData, icon: nil, options: self.options())
 
-        #expect(output.attributedTitle.string.count(where: { $0 == "–" }) == 18)
+        #expect(output.attributedTitle.string.count(where: { $0 == "–" }) == 17)
         #expect(output.accessibilityLabel.contains("unavailable"))
     }
 
     @Test
-    func `all accounts weekly token respects remaining display`() {
+    func `Codex automatic percentage shows every account and respects remaining display`() {
         let renderer = MenuBarLayoutRenderer()
         let output = renderer.render(
-            layout: MenuBarLayout(lines: [[.allAccountsWeeklyPercent]]),
+            layout: MenuBarLayout(lines: [[.percent(window: .automatic)]]),
             data: self.data(),
             icon: nil,
             options: self.options(showUsed: false))
 
         #expect(output.attributedTitle.string == "40% / 75%")
         #expect(output.accessibilityLabel == L("%@ %@", L("Weekly"), "40%, 75%"))
-    }
-
-    @Test
-    func `layout detects all accounts weekly token`() {
-        #expect(MenuBarLayout(lines: [[.icon, .allAccountsWeeklyPercent]]).showsAllAccountsWeeklyPercent)
-        #expect(!MenuBarLayout(lines: [[.icon, .percent(window: .weekly)]]).showsAllAccountsWeeklyPercent)
     }
 
     @Test
@@ -245,7 +237,7 @@ struct MenuBarLayoutRendererTests {
             options: self.options())
 
         // Each pace token reads its own window, so weekly pace never borrows the session delta.
-        #expect(output.attributedTitle.string == "W 60%\u{2009}·\u{2009}+11%")
+        #expect(output.attributedTitle.string == "60% / 25%\u{2009}·\u{2009}+11%")
         #expect(output.accessibilityLabel.contains(L("menu_bar_layout_token_weekly_pace")))
     }
 
@@ -315,7 +307,7 @@ struct MenuBarLayoutRendererTests {
             with: NSSize(width: 200, height: CGFloat.greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading])
 
-        #expect(output.attributedTitle.string == "5h 25%\nW 60%")
+        #expect(output.attributedTitle.string == "5h 25%\n60% / 25%")
         #expect(output.accessibilityLabel.contains(L("menu_bar_layout_line", 2)))
         #expect(bounds.height <= 22)
     }
@@ -520,7 +512,7 @@ struct MenuBarLayoutRendererTests {
         // so AppKit dims the whole title together on inactive displays.
         #expect(output.leadingIcon == nil)
         #expect(output.attributedTitle.attribute(.attachment, at: 0, effectiveRange: nil) is NSTextAttachment)
-        let textIndex = (output.attributedTitle.string as NSString).range(of: "50%").location
+        let textIndex = (output.attributedTitle.string as NSString).range(of: "60%").location
         #expect(output.attributedTitle
             .attribute(.foregroundColor, at: textIndex, effectiveRange: nil) as? NSColor == .labelColor)
     }
