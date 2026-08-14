@@ -1,0 +1,55 @@
+name: Build Fork App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-app:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Select Xcode 26.3 or 26.2
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_26.3.app /Applications/Xcode_26.2.app; do
+            if [[ -d "$candidate" ]]; then
+              sudo xcode-select -s "${candidate}/Contents/Developer"
+              break
+            fi
+          done
+          [[ "$(/usr/bin/xcodebuild -version)" == Xcode\ 26.* ]]
+
+      - name: Restore SwiftPM build cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: swiftpm-macos26-arm64-${{ hashFiles('Package.resolved', 'Package.swift') }}
+          restore-keys: |
+            swiftpm-macos26-arm64-
+
+      - name: Package ad-hoc app
+        run: ./Scripts/package_app.sh release
+
+      - name: Verify app
+        run: |
+          set -euo pipefail
+          codesign --verify --deep --strict --verbose=2 CodexBar.app
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' CodexBar.app/Contents/Info.plist)" == "com.steipete.codexbar" ]]
+
+      - name: Archive app
+        run: ditto -c -k --sequesterRsrc --keepParent CodexBar.app CodexBar-fork.zip
+
+      - name: Upload app
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: CodexBar-fork-app
+          path: CodexBar-fork.zip
+          if-no-files-found: error
+          retention-days: 7
