@@ -207,7 +207,8 @@ extension UsageStore {
 
     func shouldFetchAllCodexVisibleAccounts() -> Bool {
         let projection = self.freshCodexVisibleAccountProjectionForAccountRefresh()
-        return self.settings.multiAccountMenuLayout == .stacked &&
+        let menuNeedsEveryAccount = self.settings.menuBarLayout(for: .codex).showsAllAccountsWeeklyPercent
+        return (self.settings.multiAccountMenuLayout == .stacked || menuNeedsEveryAccount) &&
             projection.visibleAccounts.count > 1
     }
 

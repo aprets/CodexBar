@@ -13,6 +13,8 @@ enum MenuBarLayoutToken: Codable, Hashable, Sendable {
     case providerName
     case accountLabel
     case percent(window: PercentWindow)
+    /// Weekly percentages for every visible Codex account, rendered in stable account order.
+    case allAccountsWeeklyPercent
     /// Signed pace delta for a window, e.g. `+11%` when usage runs ahead of the sustainable rate.
     /// `runsOut` answers "when does this end"; this token answers "how far off the even rate am I".
     case pace(window: PercentWindow)
@@ -56,6 +58,17 @@ enum MenuBarLayoutSemanticWindowResolver {
     }
 }
 
+enum MenuBarLayoutAccountWindowResolver {
+    static func codexWeekly(_ snapshots: [CodexAccountUsageSnapshot]) -> [MenuBarLayoutRenderWindow?] {
+        let activeFirst = snapshots.filter(\.account.isActive) + snapshots.filter { !$0.account.isActive }
+        return activeFirst.map { accountSnapshot in
+            MenuBarLayoutRenderWindow(CodexConsumerProjection.sourceRateWindow(
+                for: .weekly,
+                snapshot: accountSnapshot.snapshot))
+        }
+    }
+}
+
 enum MenuBarLayoutBalanceResolver {
     static func balance(
         provider: UsageProvider,
@@ -90,6 +103,10 @@ struct MenuBarLayout: Codable, Hashable, Sendable {
 
     init(lines: [[MenuBarLayoutToken]]) {
         self.lines = Self.normalizedLines(lines)
+    }
+
+    var showsAllAccountsWeeklyPercent: Bool {
+        self.lines.joined().contains(.allAccountsWeeklyPercent)
     }
 
     private enum CodingKeys: String, CodingKey {

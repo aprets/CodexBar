@@ -26,6 +26,7 @@ struct MenuBarLayoutRenderData: Hashable {
     let iconKey: String
     let providerName: String?
     let accountLabel: String?
+    let accountWeeklyWindows: [MenuBarLayoutRenderWindow?]
     let session: MenuBarLayoutRenderWindow?
     let weekly: MenuBarLayoutRenderWindow?
     let scopedWeekly: MenuBarLayoutRenderWindow?
@@ -331,6 +332,21 @@ final class MenuBarLayoutRenderer {
             return self.optionalTextToken(
                 data.accountLabel,
                 unavailableLabel: L("Account unavailable"),
+                attributes: style.attributes)
+        case .allAccountsWeeklyPercent:
+            guard !data.accountWeeklyWindows.isEmpty else {
+                return self.textToken(
+                    self.missingValue,
+                    accessibilityText: L("%@ unavailable", L("Weekly")),
+                    attributes: style.attributes)
+            }
+            let values = data.accountWeeklyWindows.map { window in
+                window.map { options.showUsed ? $0.usedPercent : $0.remainingPercent }
+                    .map(UsageFormatter.percentString) ?? Self.missingValue
+            }
+            return self.textToken(
+                values.joined(separator: " / "),
+                accessibilityText: L("%@ %@", L("Weekly"), values.joined(separator: ", ")),
                 attributes: style.attributes)
         case let .percent(window):
             let rateWindow = Self.window(window, data: data)
