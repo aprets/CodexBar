@@ -242,7 +242,7 @@ struct MenuBarLayoutEditor: View {
             .pace(window: .weekly),
             .pace(window: .automatic),
         ]
-        if self.scopedProvider == .codex {
+        if MenuBarLayoutAccountWindowResolver.supports(provider: self.scopedProvider) {
             usageTokens.insert(.allAccountsWeeklyPercent, at: 2)
         }
         return [
@@ -722,9 +722,9 @@ struct MenuBarLayoutPreview: View {
             iconKey: provider.rawValue,
             providerName: L(self.store.metadata(for: provider).displayName),
             accountLabel: self.settings.hidePersonalInfo ? nil : snapshot.accountEmail(for: provider),
-            accountWeeklyWindows: provider == .codex
-                ? MenuBarLayoutAccountWindowResolver.codexWeekly(self.store.codexAccountSnapshots)
-                : [],
+            accountWeeklyWindows: MenuBarLayoutAccountWindowResolver.weekly(
+                provider: provider,
+                codexSnapshots: self.store.codexAccountSnapshots),
             session: MenuBarLayoutRenderWindow(session),
             weekly: MenuBarLayoutRenderWindow(weekly),
             scopedWeekly: MenuBarLayoutRenderWindow(scopedNamed?.window),
@@ -780,13 +780,14 @@ struct MenuBarLayoutPreview: View {
             iconKey: "\(provider.rawValue)-representative",
             providerName: L(self.store.metadata(for: provider).displayName),
             accountLabel: self.settings.hidePersonalInfo ? nil : L("menu_bar_layout_sample_account"),
-            accountWeeklyWindows: provider == .codex
-                ? [MenuBarLayoutRenderWindow(weekly), MenuBarLayoutRenderWindow(RateWindow(
+            accountWeeklyWindows: MenuBarLayoutAccountWindowResolver.weeklyPreview(
+                provider: provider,
+                primary: weekly,
+                secondary: RateWindow(
                     usedPercent: 24,
                     windowMinutes: 10080,
                     resetsAt: now.addingTimeInterval(5 * 24 * 60 * 60),
-                    resetDescription: nil))]
-                : [],
+                    resetDescription: nil)),
             session: MenuBarLayoutRenderWindow(session),
             weekly: MenuBarLayoutRenderWindow(weekly),
             scopedWeekly: MenuBarLayoutRenderWindow(scopedWeekly),
