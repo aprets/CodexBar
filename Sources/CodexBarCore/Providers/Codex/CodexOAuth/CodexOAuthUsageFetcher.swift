@@ -374,7 +374,7 @@ public enum CodexOAuthFetchError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .unauthorized:
-            return "Codex OAuth token expired or invalid. Run `codex` to re-authenticate."
+            return "Codex OAuth token expired or invalid. Run `codex login` to re-authenticate."
         case .invalidResponse:
             return "Invalid response from Codex usage API."
         case let .serverError(code, message):
@@ -591,6 +591,10 @@ public enum CodexOAuthUsageFetcher {
         }
     }
 
+    static func chatGPTUsageURL(env: [String: String]) -> URL {
+        self.resolveUsageURL(env: env)
+    }
+
     private static func resolveUsageURL(env: [String: String]) -> URL {
         self.resolveUsageURL(env: env, configContents: nil)
     }
@@ -647,7 +651,9 @@ public enum CodexOAuthUsageFetcher {
 
     private static func normalizeChatGPTBaseURL(_ value: String) -> String {
         var trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { trimmed = Self.defaultChatGPTBaseURL }
+        if trimmed.isEmpty {
+            trimmed = Self.defaultChatGPTBaseURL
+        }
         while trimmed.hasSuffix("/") {
             trimmed.removeLast()
         }
