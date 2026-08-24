@@ -465,6 +465,9 @@ struct ProvidersPane: View {
                 }
             } },
             openConfigFile: {
+                if implementation?.openTokenFile(context: context) == true {
+                    return
+                }
                 self.settings.openTokenAccountsFile()
             },
             reloadFromDisk: {
@@ -588,9 +591,9 @@ struct ProvidersPane: View {
             resetTimeDisplayStyle: self.settings.resetTimeDisplayStyle,
             tokenCostUsageEnabled: self.settings.isCostUsageEffectivelyEnabled(for: provider),
             codexLocalSessionCostLedgerEnabled: self.settings.codexLocalSessionCostLedgerEnabled,
-            tokenCostInlineDashboardEnabled: self.settings.costSummaryShowsInlineDashboard(for: provider),
             // Display style only controls the main menu. Provider details always expose
             // available cost data in their Usage section.
+            costSummaryInlineEnabled: true,
             tokenCostMenuSectionEnabled: self.settings.isCostUsageEffectivelyEnabled(for: provider),
             showOptionalCreditsAndExtraUsage: self.settings.showOptionalCreditsAndExtraUsage,
             claudeDailyRoutinesUsageVisible: self.settings.claudeDailyRoutinesUsageVisible,
@@ -604,6 +607,8 @@ struct ProvidersPane: View {
                 .weekly: self.quotaWarningMarkerThresholds(provider: provider, window: .weekly),
             ],
             workDaysPerWeek: self.settings.weeklyProgressWorkDays,
+            workdayTickAppearance: self.settings.workdayTickAppearance,
+            paceVisible: self.settings.paceVisible,
             now: now)
         return UsageMenuCardView.Model.make(input)
     }

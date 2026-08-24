@@ -22,7 +22,9 @@ extension SettingsStore {
         _ = self.quotaWarningSoundEnabled
         _ = self.quotaWarningOnScreenAlertEnabled
         _ = self.quotaWarningMarkersVisible
+        _ = self.paceVisible
         _ = self.weeklyProgressWorkDays
+        _ = self.workdayTickAppearance
         _ = self.usageBarsShowUsed
         _ = self.resetTimesShowAbsolute
         _ = self.providerChangelogLinksEnabled
@@ -45,6 +47,10 @@ extension SettingsStore {
         _ = self.costUsageEnabled
         _ = self.codexLocalSessionCostLedgerEnabled
         _ = self.costUsageHistoryDays
+        _ = self.costUsageBucketTimeZoneIdentifier
+        _ = self.openCodexUsageLogsEnabled
+        _ = self.hideNativeCodexCostWhenOpenCodexPresent
+        _ = self.spendDashboardHiddenSourceIDs
         _ = self.costComparisonPeriodsEnabled
         _ = self.costSummaryDisplayStyle
         _ = self.appLanguage
@@ -59,10 +65,11 @@ extension SettingsStore {
         _ = self.copilotBudgetExtrasEnabled
         _ = self.showOptionalCreditsAndExtraUsage
         _ = self.claudeDailyRoutinesUsageVisible
+        _ = self.claudeModelScopedWeeklyUsageVisible
         _ = self.codexSparkUsageVisible
         _ = self.openAIWebAccessEnabled
         _ = self.openAIWebBatterySaverEnabled
-        _ = self.backgroundWorkLowPowerModeEnabled
+        _ = self.backgroundWorkLowPowerModePreference
         _ = self.providerStorageFootprintsEnabled
         _ = self.agentSessionsEnabled
         _ = self.agentSessionLabelStyle

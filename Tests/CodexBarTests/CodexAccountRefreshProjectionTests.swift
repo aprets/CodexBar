@@ -6,6 +6,37 @@ import Testing
 @MainActor
 extension CodexAccountScopedRefreshTests {
     @Test
+    func `segmented Codex accounts fan out for menu bar percentages`() throws {
+        let settings = self.makeSettingsStore(
+            suite: "CodexAccountScopedRefreshTests-segmented-menu-bar-percentages")
+        settings.refreshFrequency = .manual
+        settings.multiAccountMenuLayout = .segmented
+        settings.codexUsageDataSource = .oauth
+        settings.codexActiveSource = .liveSystem
+        settings._test_liveSystemCodexAccount = self.liveAccount(email: "live-menu-bar@example.com")
+
+        let managedAccount = ManagedCodexAccount(
+            id: UUID(),
+            email: "managed-menu-bar@example.com",
+            managedHomePath: "/tmp/codex-managed-menu-bar",
+            createdAt: 1,
+            updatedAt: 2,
+            lastAuthenticatedAt: 2)
+        let storeURL = try self.makeManagedAccountStoreURL(accounts: [managedAccount])
+        defer {
+            settings._test_liveSystemCodexAccount = nil
+            settings._test_managedCodexAccountStoreURL = nil
+            try? FileManager.default.removeItem(at: storeURL)
+        }
+        settings._test_managedCodexAccountStoreURL = storeURL
+
+        let store = self.makeUsageStore(settings: settings)
+
+        #expect(settings.codexVisibleAccountProjection.visibleAccounts.count == 2)
+        #expect(store.shouldFetchAllCodexVisibleAccounts())
+    }
+
+    @Test
     func `stale stacked projection collapse runs single codex fetch`() async throws {
         SettingsStore.codexAccountReconciliationSnapshotCacheIntervalOverrideForTesting = 60
         let settings = self.makeSettingsStore(
